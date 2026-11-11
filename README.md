@@ -6,7 +6,7 @@ MCP-server waarmee Claude Spotify bedient: afspelen, pauzeren, volgende/vorige, 
 
 - Spotify Premium
 - Een app op [developer.spotify.com](https://developer.spotify.com/dashboard) met redirect URI `http://127.0.0.1:8888/callback`
-- Node 22+
+- Node 22.13+
 
 ## Setup
 
@@ -24,6 +24,16 @@ Testen met de MCP Inspector: `pnpm inspect`
 ```bash
 claude mcp add spotify -- node --env-file=/pad/naar/spotify-mcp/.env /pad/naar/spotify-mcp/build/server.js
 ```
+
+## Remote (Claude-app op gsm, claude.ai)
+
+`build/http.js` serveert MCP via Streamable HTTP op `/mcp`, beveiligd met OAuth via de SDK-router. Aanmelden gebeurt met je Spotify-account: alleen het account achter `SPOTIFY_REFRESH_TOKEN` krijgt toegang.
+
+1. Voeg in de Spotify-app de redirect URI `https://<domein>/oauth/spotify/callback` toe.
+2. CI (`.github/workflows/ci.yml`, via `vernaillen/workflows`) bouwt de image, pusht ze naar `registry.apps.vernaillen.dev/spotify-mcp` en laat Coolify herdeployen. De Coolify-app (Docker Image) krijgt env `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `SPOTIFY_REFRESH_TOKEN`, `PUBLIC_URL=https://<domein>` en een volume op `/data` (OAuth-clients en tokens, SQLite).
+3. Voeg in claude.ai een custom connector toe met URL `https://<domein>/mcp` en meld aan met Spotify.
+
+Lokaal: `pnpm build && pnpm start:http` (standaard `http://localhost:3000/mcp`).
 
 ## Tools
 

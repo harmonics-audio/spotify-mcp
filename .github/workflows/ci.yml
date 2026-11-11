@@ -1,0 +1,37 @@
+name: ci
+
+# check -> build -> smoke test -> push -> redeploy, all of it in
+# vernaillen/workflows. This file only says what is different about this
+# repository.
+#
+# Repository configuration, set by vernaillen/workflows/scripts/configure-repo.sh:
+#   Secrets:   REGISTRY_USERNAME, REGISTRY_PASSWORD  registry on Coolify
+#              COOLIFY_TOKEN                         deploy permission
+#              SMOKE_ENV                             dummy SPOTIFY_* values and
+#                                                    PUBLIC_URL=http://127.0.0.1:18080;
+#                                                    the server refuses to boot
+#                                                    without them and only answers
+#                                                    its own hostname
+#   Variables: COOLIFY_URL, COOLIFY_APP_UUID         which app to redeploy
+#
+# smoke-path is the OAuth discovery document: it needs no login and no Spotify call.
+
+on:
+  push:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  pipeline:
+    uses: vernaillen/workflows/.github/workflows/coolify-deploy.yml@v1
+    with:
+      image-name: spotify-mcp
+      node-version: '24'
+      smoke-port: 3000
+      smoke-path: /.well-known/oauth-protected-resource/mcp
+      coolify-url: ${{ vars.COOLIFY_URL }}
+      coolify-app-uuid: ${{ vars.COOLIFY_APP_UUID }}
+    secrets: inherit
