@@ -5,7 +5,11 @@ const { SPOTIFY_CLIENT_ID: id, SPOTIFY_CLIENT_SECRET: secret } = process.env
 if (!id || !secret) throw new Error('SPOTIFY_CLIENT_ID en SPOTIFY_CLIENT_SECRET zijn vereist')
 
 const redirect = 'http://127.0.0.1:8888/callback'
-const scopes = 'user-modify-playback-state user-read-playback-state user-read-currently-playing'
+const scopes = [
+  'user-modify-playback-state', 'user-read-playback-state', 'user-read-currently-playing',
+  'user-library-read', 'user-library-modify',
+  'playlist-read-private', 'playlist-read-collaborative', 'playlist-modify-private', 'playlist-modify-public',
+].join(' ')
 const state = randomUUID()
 
 console.log('Open deze URL en log in:\n')
