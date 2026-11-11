@@ -29,4 +29,9 @@ jobs:
       smoke-path: /.well-known/oauth-protected-resource/mcp
       coolify-url: https://coolify.apps.vernaillen.dev
       coolify-app-uuid: icgxriktsddic6k2hrpabtnw
-    secrets: inherit
+    # Named one by one: `inherit` only reaches workflows of the same owner
+    secrets:
+      SMOKE_ENV: ${{ secrets.SMOKE_ENV }}
+      REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+      COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
