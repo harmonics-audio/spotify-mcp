@@ -1,0 +1,36 @@
+{
+  "name": "spotify-mcp",
+  "version": "1.0.0",
+  "description": "MCP-server om Spotify te bedienen: afspelen, pauzeren, volume, wachtrij, toestellen en zoeken",
+  "scripts": {
+    "auth": "tsx --env-file=.env src/auth.ts",
+    "dev": "tsx --env-file-if-exists=.env src/server.ts",
+    "build": "tsc",
+    "start": "node --env-file-if-exists=.env build/server.js",
+    "typecheck": "tsc --noEmit",
+    "inspect": "pnpm dlx @modelcontextprotocol/inspector pnpm exec tsx --env-file=.env src/server.ts"
+  },
+  "license": "MIT",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.18.0",
+      "onFail": "download"
+    }
+  },
+  "packageManager": "pnpm@12.18.0",
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  }
+}
