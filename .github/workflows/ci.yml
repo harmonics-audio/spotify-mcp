@@ -1,0 +1,37 @@
+name: ci
+
+# check -> build -> smoke test -> push -> redeploy, all of it in
+# vernaillen/workflows. This file only says what is different about this
+# repository.
+#
+# Secrets: REGISTRY_USERNAME, REGISTRY_PASSWORD and COOLIFY_TOKEN come from the
+# harmonics-audio organisation. SMOKE_ENV is a repository secret with dummy
+# SPOTIFY_* values and PUBLIC_URL=http://127.0.0.1:18080: the server refuses to
+# boot without them and only answers its own hostname.
+#
+# smoke-path is the OAuth discovery document: it needs no login and no Spotify call.
+
+on:
+  push:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  pipeline:
+    uses: vernaillen/workflows/.github/workflows/coolify-deploy.yml@v1
+    with:
+      image-name: spotify-mcp
+      node-version: '24'
+      smoke-port: 3000
+      smoke-path: /.well-known/oauth-protected-resource/mcp
+      coolify-url: https://coolify.apps.vernaillen.dev
+      coolify-app-uuid: icgxriktsddic6k2hrpabtnw
+    # Named one by one: `inherit` only reaches workflows of the same owner
+    secrets:
+      SMOKE_ENV: ${{ secrets.SMOKE_ENV }}
+      REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+      COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
