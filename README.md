@@ -49,9 +49,16 @@ Lokaal: `pnpm build && pnpm start:http` (standaard `http://localhost:3000/mcp`).
 | `spotify_transfer` | Afspelen naar ander toestel verplaatsen |
 | `spotify_search` | Zoek nummers, artiesten, albums, playlists |
 | `spotify_search_and_play` | Zoek en speel meteen het beste resultaat |
+| `spotify_playlists` | Mijn playlists |
+| `spotify_playlist_tracks` | Nummers in een eigen playlist |
+| `spotify_liked_tracks`, `spotify_saved_albums` | Gelikete nummers, opgeslagen albums |
+| `spotify_save`, `spotify_unsave` | Liken/bewaren of verwijderen in de bibliotheek |
+| `spotify_playlist_create`, `spotify_playlist_add` | Playlist maken, nummers toevoegen |
 
 ## Aandachtspunten
 
 - Fout 404 "No active device": open Spotify ergens, of gebruik `spotify_devices` en dan `spotify_transfer`.
 - Spotify negeert momenteel (november 2026) `PUT /me/player/play` met een specifiek nummer: het antwoordt 204 maar maakt de speler leeg. Daarom zetten `spotify_play` en `spotify_search_and_play` een nummer in de wachtrij en springen ernaartoe. Albums, playlists en artiesten starten nog via `spotify_play` en kunnen genegeerd worden.
+- Sinds februari 2026 toont Spotify alleen de nummers van playlists die je zelf maakte of waaraan je meewerkt.
+- Na een uitbreiding van de scopes in `src/auth.ts`: `pnpm auth` opnieuw draaien en het nieuwe refresh token in `.env` en in Coolify zetten.
 - Het refresh token is gevoelig: alleen in `.env` (staat in `.gitignore`), nooit in de repo.

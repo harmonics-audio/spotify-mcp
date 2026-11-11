@@ -59,6 +59,23 @@ const time = (ms: number) => `${Math.floor(ms / 60000)}:${String(Math.floor(ms /
 
 const types = z.enum(['track', 'artist', 'album', 'playlist'])
 
+const line = (i: any) => `${i.name}${i.artists ? ' – ' + i.artists.map((a: any) => a.name).join(', ') : ''} | ${i.uri}`
+
+const page = {
+  limit: z.number().int().min(1).max(50).default(20),
+  offset: z.number().int().min(0).default(0),
+}
+
+const list = (j: any, pick: (i: any) => any, offset: number) => {
+  const rows = j.items.map(pick).filter(Boolean).map(line)
+  return ok(rows.length ? `${rows.join('\n')}\n(${offset + 1}-${offset + rows.length} van ${j.total})` : 'Niets gevonden')
+}
+
+// Accepts spotify:playlist:<id> as well as a bare id
+const idOf = (uri: string) => uri.split(':').pop()!
+
+const uris = z.array(z.string()).min(1).max(40)
+
 const search = (q: string, type: string, limit: number) =>
   spotify('GET', '/search', { q, type, limit: String(limit) }).then(j => (j[`${type}s`]?.items ?? []).filter(Boolean))
 
@@ -151,9 +168,7 @@ export function createServer() {
     annotations: { readOnlyHint: true },
   }, async ({ query, type }) => {
     const items = await search(query, type, 5)
-    const lines = items.map((i: any) =>
-      `${i.name}${i.artists ? ' – ' + i.artists.map((a: any) => a.name).join(', ') : ''} | ${i.uri}`)
-    return ok(lines.join('\n') || 'Niets gevonden')
+    return ok(items.map(line).join('\n') || 'Niets gevonden')
   })
 
   server.registerTool('spotify_search_and_play', {
@@ -163,6 +178,67 @@ export function createServer() {
     const [item] = await search(query, type, 1)
     if (!item) return ok('Niets gevonden')
     return ok(`Speelt nu: ${item.name}. ${await start(item.uri, device_id)}`.trim())
+  })
+
+  server.registerTool('spotify_playlists', {
+    description: 'Mijn playlists met hun URI',
+    inputSchema: page,
+    annotations: { readOnlyHint: true },
+  }, async ({ limit, offset }) =>
+    list(await spotify('GET', '/me/playlists', { limit: String(limit), offset: String(offset) }), p => p, offset))
+
+  server.registerTool('spotify_playlist_tracks', {
+    description: 'Nummers in een playlist (URI of id). Spotify geeft alleen de inhoud van eigen playlists of playlists waaraan je meewerkt.',
+    inputSchema: { playlist: z.string(), ...page },
+    annotations: { readOnlyHint: true },
+  }, async ({ playlist, limit, offset }) =>
+    list(await spotify('GET', `/playlists/${idOf(playlist)}/items`, { limit: String(limit), offset: String(offset) }), i => i.item ?? i.track, offset))
+
+  server.registerTool('spotify_liked_tracks', {
+    description: 'Gelikete nummers (Liked Songs), nieuwste eerst',
+    inputSchema: page,
+    annotations: { readOnlyHint: true },
+  }, async ({ limit, offset }) =>
+    list(await spotify('GET', '/me/tracks', { limit: String(limit), offset: String(offset) }), i => i.track, offset))
+
+  server.registerTool('spotify_saved_albums', {
+    description: 'Opgeslagen albums, nieuwste eerst',
+    inputSchema: page,
+    annotations: { readOnlyHint: true },
+  }, async ({ limit, offset }) =>
+    list(await spotify('GET', '/me/albums', { limit: String(limit), offset: String(offset) }), i => i.album, offset))
+
+  server.registerTool('spotify_save', {
+    description: 'Opslaan in de bibliotheek: nummer liken, album bewaren, playlist volgen (Spotify-URI\'s)',
+    inputSchema: { uris },
+  }, async ({ uris }) => {
+    await spotify('PUT', '/me/library', { uris: uris.join(',') })
+    return ok('Opgeslagen')
+  })
+
+  server.registerTool('spotify_unsave', {
+    description: 'Uit de bibliotheek verwijderen: nummer niet meer liken, album of playlist verwijderen (Spotify-URI\'s)',
+    inputSchema: { uris },
+    annotations: { destructiveHint: true },
+  }, async ({ uris }) => {
+    await spotify('DELETE', '/me/library', { uris: uris.join(',') })
+    return ok('Verwijderd uit de bibliotheek')
+  })
+
+  server.registerTool('spotify_playlist_create', {
+    description: 'Nieuwe playlist maken; geeft de URI terug',
+    inputSchema: { name: z.string(), description: z.string().optional(), public: z.boolean().default(false) },
+  }, async (body) => {
+    const p = await spotify('POST', '/me/playlists', {}, body)
+    return ok(`Playlist gemaakt: ${p.name} | ${p.uri}`)
+  })
+
+  server.registerTool('spotify_playlist_add', {
+    description: 'Nummers aan een eigen playlist toevoegen (playlist-URI of id, nummer-URI\'s)',
+    inputSchema: { playlist: z.string(), uris },
+  }, async ({ playlist, uris }) => {
+    await spotify('POST', `/playlists/${idOf(playlist)}/items`, {}, { uris })
+    return ok(`${uris.length} toegevoegd`)
   })
 
   return server
