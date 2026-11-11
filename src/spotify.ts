@@ -46,7 +46,7 @@ const ok = (text: string) => ({ content: [{ type: 'text' as const, text }] })
 async function start(uri: string, device_id?: string) {
   if (!/:(?:track|episode):/.test(uri)) {
     await player('PUT', '/play', { device_id }, { context_uri: uri })
-    return 'Let op: Spotify negeert momenteel vaak het starten van albums, playlists en artiesten via de API. Controleer met now_playing.'
+    return 'Let op: Spotify negeert momenteel vaak het starten van albums, playlists en artiesten via de API. Controleer met spotify_now_playing.'
   }
   // Spotify currently answers PUT /play with `uris` with 204 but clears the player instead; queue + skip still works
   if (device_id) await player('PUT', '', {}, { device_ids: [device_id], play: false })
@@ -65,7 +65,7 @@ const search = (q: string, type: string, limit: number) =>
 export function createServer() {
   const server = new McpServer({ name: 'spotify-control', version: '0.1.0' })
 
-  server.registerTool('devices', {
+  server.registerTool('spotify_devices', {
     description: 'Lijst beschikbare Spotify-toestellen met hun id',
     annotations: { readOnlyHint: true },
   }, async () => {
@@ -75,7 +75,7 @@ export function createServer() {
     return ok(lines.join('\n') || 'Geen toestellen gevonden. Open Spotify op een toestel.')
   })
 
-  server.registerTool('now_playing', {
+  server.registerTool('spotify_now_playing', {
     description: 'Wat speelt er nu',
     annotations: { readOnlyHint: true },
   }, async () => {
@@ -87,7 +87,7 @@ export function createServer() {
     return ok(`${j.is_playing ? 'Speelt' : 'Gepauzeerd'}: ${item.name} – ${by}${from} | ${time(j.progress_ms ?? 0)}/${time(item.duration_ms)} | ${item.uri}`)
   })
 
-  server.registerTool('play', {
+  server.registerTool('spotify_play', {
     description: 'Afspelen of hervatten, optioneel met een Spotify-URI (nummer, album, playlist, artiest) en toestel',
     inputSchema: { uri: z.string().optional(), device_id: z.string().optional() },
   }, async ({ uri, device_id }) => {
@@ -98,22 +98,22 @@ export function createServer() {
     return ok(`Afspelen gestart. ${await start(uri, device_id)}`.trim())
   })
 
-  server.registerTool('pause', { description: 'Pauzeren' }, async () => {
+  server.registerTool('spotify_pause', { description: 'Pauzeren' }, async () => {
     await player('PUT', '/pause')
     return ok('Gepauzeerd')
   })
 
-  server.registerTool('next', { description: 'Volgende nummer' }, async () => {
+  server.registerTool('spotify_next', { description: 'Volgende nummer' }, async () => {
     await player('POST', '/next')
     return ok('Volgende nummer')
   })
 
-  server.registerTool('previous', { description: 'Vorige nummer' }, async () => {
+  server.registerTool('spotify_previous', { description: 'Vorige nummer' }, async () => {
     await player('POST', '/previous')
     return ok('Vorige nummer')
   })
 
-  server.registerTool('volume', {
+  server.registerTool('spotify_volume', {
     description: 'Volume instellen (0-100)',
     inputSchema: { percent: z.number().int().min(0).max(100) },
   }, async ({ percent }) => {
@@ -121,7 +121,7 @@ export function createServer() {
     return ok(`Volume ${percent}%`)
   })
 
-  server.registerTool('shuffle', {
+  server.registerTool('spotify_shuffle', {
     description: 'Shuffle aan/uit',
     inputSchema: { on: z.boolean() },
   }, async ({ on }) => {
@@ -129,7 +129,7 @@ export function createServer() {
     return ok(`Shuffle ${on ? 'aan' : 'uit'}`)
   })
 
-  server.registerTool('queue', {
+  server.registerTool('spotify_queue', {
     description: 'Nummer aan de wachtrij toevoegen (Spotify-URI van een nummer)',
     inputSchema: { uri: z.string() },
   }, async ({ uri }) => {
@@ -137,15 +137,15 @@ export function createServer() {
     return ok('Toegevoegd aan wachtrij')
   })
 
-  server.registerTool('transfer', {
-    description: 'Afspelen naar een ander toestel verplaatsen (gebruik eerst devices voor de id)',
+  server.registerTool('spotify_transfer', {
+    description: 'Afspelen naar een ander toestel verplaatsen (gebruik eerst spotify_devices voor de id)',
     inputSchema: { device_id: z.string(), play: z.boolean().default(true) },
   }, async ({ device_id, play }) => {
     await player('PUT', '', {}, { device_ids: [device_id], play })
     return ok('Afspelen verplaatst')
   })
 
-  server.registerTool('search', {
+  server.registerTool('spotify_search', {
     description: 'Zoek nummers, artiesten, albums of playlists; geeft namen en URI\'s terug',
     inputSchema: { query: z.string(), type: types.default('track') },
     annotations: { readOnlyHint: true },
@@ -156,7 +156,7 @@ export function createServer() {
     return ok(lines.join('\n') || 'Niets gevonden')
   })
 
-  server.registerTool('search_and_play', {
+  server.registerTool('spotify_search_and_play', {
     description: 'Zoek en speel meteen het beste resultaat af. Voor een artiest spelen diens populairste nummers; gebruik type track voor één specifiek nummer.',
     inputSchema: { query: z.string(), type: types.default('track'), device_id: z.string().optional() },
   }, async ({ query, type, device_id }) => {

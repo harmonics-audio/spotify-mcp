@@ -39,19 +39,19 @@ Lokaal: `pnpm build && pnpm start:http` (standaard `http://localhost:3000/mcp`).
 
 | Tool | Wat |
 |---|---|
-| `devices` | Beschikbare toestellen met id |
-| `now_playing` | Huidig nummer, voortgang en URI |
-| `play` | Afspelen/hervatten, optioneel URI en toestel |
-| `pause`, `next`, `previous` | Basisbediening |
-| `volume` | Volume 0-100 |
-| `shuffle` | Shuffle aan/uit |
-| `queue` | Nummer aan wachtrij toevoegen |
-| `transfer` | Afspelen naar ander toestel verplaatsen |
-| `search` | Zoek nummers, artiesten, albums, playlists |
-| `search_and_play` | Zoek en speel meteen het beste resultaat |
+| `spotify_devices` | Beschikbare toestellen met id |
+| `spotify_now_playing` | Huidig nummer, voortgang en URI |
+| `spotify_play` | Afspelen/hervatten, optioneel URI en toestel |
+| `spotify_pause`, `spotify_next`, `spotify_previous` | Basisbediening |
+| `spotify_volume` | Volume 0-100 |
+| `spotify_shuffle` | Shuffle aan/uit |
+| `spotify_queue` | Nummer aan wachtrij toevoegen |
+| `spotify_transfer` | Afspelen naar ander toestel verplaatsen |
+| `spotify_search` | Zoek nummers, artiesten, albums, playlists |
+| `spotify_search_and_play` | Zoek en speel meteen het beste resultaat |
 
 ## Aandachtspunten
 
-- Fout 404 "No active device": open Spotify ergens, of gebruik `devices` en dan `transfer`.
-- Spotify negeert momenteel (november 2026) `PUT /me/player/play` met een specifiek nummer: het antwoordt 204 maar maakt de speler leeg. Daarom zetten `play` en `search_and_play` een nummer in de wachtrij en springen ernaartoe. Albums, playlists en artiesten starten nog via `play` en kunnen genegeerd worden.
+- Fout 404 "No active device": open Spotify ergens, of gebruik `spotify_devices` en dan `spotify_transfer`.
+- Spotify negeert momenteel (november 2026) `PUT /me/player/play` met een specifiek nummer: het antwoordt 204 maar maakt de speler leeg. Daarom zetten `spotify_play` en `spotify_search_and_play` een nummer in de wachtrij en springen ernaartoe. Albums, playlists en artiesten starten nog via `spotify_play` en kunnen genegeerd worden.
 - Het refresh token is gevoelig: alleen in `.env` (staat in `.gitignore`), nooit in de repo.
