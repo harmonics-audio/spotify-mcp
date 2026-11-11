@@ -149,6 +149,7 @@ export function spotifyCallback(base: URL) {
   return async (req: Request, res: Response) => {
     const entry = take(pending, String(req.query.state))
     if (!entry) {
+      console.warn('Spotify-callback met onbekende of verlopen state')
       res.status(400).send('Aanmelding verlopen of ongeldig, probeer opnieuw.')
       return
     }
@@ -156,7 +157,11 @@ export function spotifyCallback(base: URL) {
     if (entry.params.state) back.searchParams.set('state', entry.params.state)
 
     const code = typeof req.query.code === 'string' ? req.query.code : undefined
-    if (!code || await spotifyUserId(code, callbackUrl(base)) !== await owner()) {
+    const denied = !code
+      ? `Spotify gaf geen code: ${req.query.error}`
+      : await spotifyUserId(code, callbackUrl(base)) !== await owner() && 'ander Spotify-account dan de eigenaar'
+    if (denied) {
+      console.warn(`Aanmelding geweigerd: ${denied}`)
       back.searchParams.set('error', 'access_denied')
       res.redirect(back.href)
       return

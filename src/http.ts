@@ -12,6 +12,12 @@ const provider = createProvider(base)
 const app = createMcpExpressApp({ host: '0.0.0.0', allowedHosts: [base.hostname] })
 app.set('trust proxy', 1)
 
+// Path only: query strings carry OAuth codes and state
+app.use((req, res, next) => {
+  res.on('finish', () => console.log(`${req.method} ${req.path} ${res.statusCode}`))
+  next()
+})
+
 app.use(mcpAuthRouter({ provider, issuerUrl: base, resourceServerUrl: mcpUrl, resourceName: 'Spotify' }))
 app.get('/oauth/spotify/callback', spotifyCallback(base))
 
