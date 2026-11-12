@@ -9,7 +9,7 @@ const base = new URL(process.env.PUBLIC_URL ?? 'http://localhost:3000')
 const mcpUrl = new URL('/mcp', base)
 const provider = createProvider(base)
 
-const app = createMcpExpressApp({ host: '0.0.0.0', allowedHosts: [base.hostname] })
+const app = createMcpExpressApp({ host: '0.0.0.0', allowedHosts: [base.hostname, 'localhost'] })
 app.set('trust proxy', 1)
 
 // Path only: query strings carry OAuth codes and state
