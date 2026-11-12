@@ -4,8 +4,9 @@ name: ci
 # vernaillen/workflows. This file only says what is different about this
 # repository.
 #
-# Secrets: REGISTRY_USERNAME, REGISTRY_PASSWORD and COOLIFY_TOKEN come from the
-# harmonics-audio organisation. SMOKE_ENV is a repository secret with dummy
+# Secrets: REGISTRY_USERNAME, REGISTRY_PASSWORD and COOLIFY_TOKEN live in the
+# `production` environment, which only main can use; the shared workflow's push
+# and deploy jobs run in it, so other branches never see them. SMOKE_ENV is a repository secret with dummy
 # SPOTIFY_* values and PUBLIC_URL=http://127.0.0.1:18080: the server refuses to
 # boot without them and only answers its own hostname.
 #
