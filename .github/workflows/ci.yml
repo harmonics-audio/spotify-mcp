@@ -6,9 +6,11 @@ name: ci
 #
 # Secrets: REGISTRY_USERNAME, REGISTRY_PASSWORD and COOLIFY_TOKEN live in the
 # `production` environment, which only main can use; the shared workflow's push
-# and deploy jobs run in it, so other branches never see them. SMOKE_ENV is a repository secret with dummy
-# SPOTIFY_* values and PUBLIC_URL=http://127.0.0.1:18080: the server refuses to
-# boot without them and only answers its own hostname.
+# and deploy jobs run in it, so other branches never see them.
+#
+# SMOKE_ENV is not secret: dummy SPOTIFY_* values, because the server refuses to
+# boot without them, and PUBLIC_URL on the smoke test's host port, because it
+# only answers its own hostname.
 #
 # smoke-path is the OAuth discovery document: it needs no login and no Spotify call.
 
@@ -32,7 +34,11 @@ jobs:
       coolify-app-uuid: icgxriktsddic6k2hrpabtnw
     # Named one by one: `inherit` only reaches workflows of the same owner
     secrets:
-      SMOKE_ENV: ${{ secrets.SMOKE_ENV }}
+      SMOKE_ENV: |
+        SPOTIFY_CLIENT_ID=x
+        SPOTIFY_CLIENT_SECRET=x
+        SPOTIFY_REFRESH_TOKEN=x
+        PUBLIC_URL=http://127.0.0.1:18080
       REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
       REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
       COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
